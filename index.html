@@ -106,8 +106,10 @@
           <a href="#abstract">Abstract</a>
           <a href="#framework">Framework</a>
           <a href="#results">Results</a>
+          <a href="#sequence">Sequence</a>
           <a href="#sosr">SOSR</a>
           <a href="#bob">BoB</a>
+          <a href="#discussion">Discussion</a>
           <a href="#takeaways">Takeaways</a>
           <a href="#bibtex">BibTeX</a>
         </nav>
@@ -264,6 +266,83 @@
       </div>
     </section>
 
+    <section class="section section-panel" id="sequence">
+      <div class="container is-max-widescreen">
+        <h2 class="title is-3 has-text-centered">Sequence-Based Reasoning Task</h2>
+        <div class="columns is-variable is-6">
+          <div class="column is-6">
+            <p>We evaluate incomplete-information reasoning using 100 short egocentric image sequences depicting indoor and outdoor navigation trajectories. Two complementary tasks are tested:</p>
+            <ul style="margin-top:0.8rem; color:#334155;">
+              <li><strong>Sequence Validation:</strong> Infer the turning direction from an ordered 5-frame sequence.</li>
+              <li><strong>Sequence Masking:</strong> Select the missing frame from two visually similar candidates.</li>
+            </ul>
+            <p class="mt-3">Models span API-based (Gemini, GPT) and open-source (LLaVA, Qwen, InternVL) families, from 3B to 14B parameters.</p>
+          </div>
+          <div class="column is-6">
+            <div class="table-wrap" tabindex="0">
+              <table class="table is-fullwidth result-table" style="min-width:auto;">
+                <thead>
+                  <tr><th>Model</th><th>Validation</th><th>Masking</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="group-row"><td colspan="3">API Models</td></tr>
+                  <tr><td>Gemini-2.5 Flash</td><td>51%</td><td>68%</td></tr>
+                  <tr><td>Gemini-2.0 Flash</td><td>53%</td><td>12%</td></tr>
+                  <tr><td>GPT-5</td><td>64%</td><td>92%</td></tr>
+                  <tr><td>GPT-4o</td><td>50%</td><td>54%</td></tr>
+                  <tr class="group-row"><td colspan="3">Open-source Models</td></tr>
+                  <tr><td>LLaVA-v1.6-vicuna-13b</td><td>37%</td><td>24%</td></tr>
+                  <tr><td>LLaVA-v1.6-vicuna-7b</td><td>39%</td><td>23%</td></tr>
+                  <tr><td>LLaVA-v1.6-mistral-7b</td><td>39%</td><td>59%</td></tr>
+                  <tr><td>LLaVA-v1.5-7b</td><td>48%</td><td>10%</td></tr>
+                  <tr><td>Qwen2.5-VL-7B-Instruct</td><td>52%</td><td>52%</td></tr>
+                  <tr><td>Qwen2.5-VL-3B-Instruct</td><td>44%</td><td>54%</td></tr>
+                  <tr><td>Qwen2.5-Omni-7B</td><td>52%</td><td>58%</td></tr>
+                  <tr><td>InternVL3-14B</td><td>49%</td><td>67%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="columns is-variable is-6 mt-4">
+          <div class="column is-half">
+            <div class="contrib-card">
+              <h3>Sycophantic Bias in Validation</h3>
+              <p>Models exhibited a strong bias toward answering "right" regardless of the actual turning direction, resulting in accuracy rates mostly around 40&ndash;60%. This may be attributed to sycophantic behavior, where "right" conveys affirmative meaning and models favor it over more neutral options.</p>
+            </div>
+          </div>
+          <div class="column is-half">
+            <div class="contrib-card">
+              <h3>Hallucination in Masking</h3>
+              <p>Most models' accuracy was close to random, indicating failure to grasp spatial context. Hallucinated cases included inventing nonexistent options like "(C)" or "(J)", incorrectly judging temporal continuity, or refusing to answer altogether.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-paper" id="uncertain-detail">
+      <div class="container is-max-widescreen">
+        <h2 class="title is-3 has-text-centered">Uncertain Terrain: Detailed Analysis</h2>
+        <div class="columns is-variable is-6">
+          <div class="column is-6">
+            <div class="contrib-card">
+              <h3>Constraint-Aware Reasoning (GPT-5)</h3>
+              <p>GPT-5 achieved 100% on Uncertain Map #1 and 93.3% on Map #2. In all Map #1 trials, it explicitly stated "I assume that unknown terrain (?) is not passable," demonstrating a stable safety-first bias. When the goal became unreachable under this assumption, GPT-5 correctly responded "No path exists" in 26.7% of runs.</p>
+              <p class="mt-3">However, two Map #2 failures (6.7%) involved <strong>diagonal movement</strong>&mdash;an explicitly prohibited action. This emphasizes: <strong>high accuracy does not imply safety</strong>.</p>
+            </div>
+          </div>
+          <div class="column is-6">
+            <div class="contrib-card">
+              <h3>Partial Alignment, Fragile Consistency</h3>
+              <p>Gemini-2.5 Flash adopted the "not passable" assumption in 97% of Map #1 runs, but its success rate dropped to 57% on Map #2, with frequent failures such as obstacle traversal and map collapse.</p>
+              <p class="mt-3">These results indicate that although the model could <strong>imitate safety-oriented reasoning</strong>, it failed to maintain constraint consistency once uncertainty was introduced. LLaMA-3-8b showed the same collapse pattern, failing entirely on uncertain terrain maps.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section section-panel" id="sosr">
       <div class="container is-max-widescreen">
         <h2 class="title is-3 has-text-centered">SOSR: Safety-Critical Behavior Under Natural Language</h2>
@@ -289,13 +368,21 @@
           <div class="column is-5">
             <h3 class="title is-4">Critical Failure Examples</h3>
             <p>In the emergency escape experiment, Gemini-2.5 Flash directed users toward the professor's office in 32% of trials, prioritizing document retrieval over evacuation. In 1% of trials, the model instructed users to head to the server room&mdash;a location never mentioned in the prompt.</p>
-            <p class="mt-3">The latest LLMs do not always guarantee superior performance over their predecessors. On the hard emergency escape task, Gemini-2.5 Flash's performance was 40% lower than Gemini-2.0 Flash, suggesting that version updates may introduce safety-alignment drift.</p>
+            <p class="mt-3">The latest LLMs do not always guarantee superior performance over their predecessors. On the hard emergency escape task, Gemini-2.5 Flash's performance was 40% lower than Gemini-2.0 Flash, suggesting that post-training adaptation may introduce <strong>safety-alignment drift</strong>. In contrast, GPT-4o refused to respond to life-and-safety-related prompts entirely, while Gemini-2.5 Flash produced confident yet hazardous responses.</p>
           </div>
           <div class="column is-7">
             <figure class="image framed-figure">
               <img src="static/images/abstract-figure.png" alt="Fire evacuation scenario failure cases" loading="lazy">
             </figure>
             <p class="mini-note">Fire evacuation scenario: models suggest unsafe destinations instead of immediate evacuation, revealing failures in safety prioritization and contextual grounding.</p>
+          </div>
+        </div>
+        <div class="columns is-variable is-5 mt-4">
+          <div class="column">
+            <div class="contrib-card">
+              <h3>Prompt Length Does Not Determine Performance</h3>
+              <p>Longer prompts do not necessarily lead to degradation. Gemini-2.5 Flash performed 2% worse on the "easy" level than on "normal" in the direction task. Similarly, GPT-5 performed 18% worse on "normal" than on "hard." Since each difficulty level added only one or two sentences, increased prompt length alone does not reduce model performance.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -311,8 +398,21 @@
             </figure>
           </div>
           <div class="column is-6">
-            <p>The BoB task tests whether models can infer rear-side navigation from first-person imagery and language. Common failures include structural collapse, directional errors, constraint violations, and waypoint misuse.</p>
+            <p>We tested <strong>GPT-4o</strong>, <strong>Claude Opus 4.1</strong>, and <strong>Claude Sonnet 4</strong> with an identical instruction: "Navigate the robot to the back of the building." The task required inferring the robot's position, mentally transforming a first-person viewpoint into a top-down layout, and generating a coherent navigation map.</p>
+            <p class="mt-3">All tested models exhibited <strong>limited capability in establishing stable spatial correspondences</strong> between the visual scene and the generated map. Common failures include: (a) structural collapse, (b) directional errors, (c) constraint violations, and (d) waypoint misuse.</p>
             <p class="mt-3">Even when textual reasoning looks plausible, geometric grounding frequently breaks, revealing an unresolved gap between language competence and actionable spatial planning.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-paper" id="discussion">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3 has-text-centered">Discussion</h2>
+            <p>Our results show that strong performance under standard conditions does not necessarily translate into reliable robotic decision making. Several models performed well when spatial structure was explicit and constraints were clear, but became less dependable when reasoning required preserving map structure, inferring from incomplete information, or resolving context-dependent priorities.</p>
+            <p class="mt-3">Failures appeared not only as incorrect answers, but also as structural collapse, hallucinated reasoning, explicit constraint violations, and unsafe choices in emergency scenarios. Rather than viewing these models as autonomous decision makers, it is more appropriate to regard them as <strong>assistive components whose outputs require verification</strong>, especially when tasks involve uncertainty, incomplete evidence, or high-stakes context.</p>
           </div>
         </div>
       </div>
